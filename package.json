@@ -73,7 +73,7 @@
     "nock": "^13.3.3",
     "nodemon": "^3.0.1",
     "pino-pretty": "^10.2.0",
-    "pkg": "^5.8.1",
+    "yao-pkg/pkg": "^6.9.0",
     "prettier": "^3.0.3",
     "prisma": "^5.3.1",
     "rimraf": "^5.0.5",
