@@ -1,5 +1,5 @@
 # build stage
-FROM node:16 as build
+FROM node:current-trixie as build
 
 WORKDIR /citizen
 
@@ -14,7 +14,7 @@ RUN npm run client
 RUN npm run build:linux
 
 # final stage
-FROM bitnami/minideb
+FROM debian:trixie-slim
 
 LABEL maintainer="outsideris@gmail.com"
 LABEL org.opencontainers.image.source = "https://github.com/outsideris/citizen"
