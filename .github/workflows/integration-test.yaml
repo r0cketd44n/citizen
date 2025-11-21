@@ -17,8 +17,8 @@ jobs:
       matrix:
         node:
           - 16
-          - 18
-          - 19
+          - 25
+
 
     env:
       CITIZEN_DATABASE_TYPE: sqlite
