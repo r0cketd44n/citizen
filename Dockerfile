@@ -5,6 +5,7 @@ WORKDIR /citizen
 
 COPY package.json .
 COPY package-lock.json .
+RUN rm -rf package-lock.json
 RUN npm install
 
 COPY . .
