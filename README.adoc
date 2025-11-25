@@ -46,7 +46,8 @@ Environment variables:
 ** `gcs` is for link:https://cloud.google.com/storage[Google Cloud Storage].
 * `CITIZEN_STORAGE_PATH`: A directory to save module files only if `CITIZEN_STORAGE` is `file` (absolute/relative path can be used).
 * `CITIZEN_STORAGE_BUCKET`: A S3 bucket to save module files only if `CITIZEN_STORAGE` is `s3` or `gcs`.(And AWS credentials required.)
-
+* 'GPG_PRIVATE_KEY' : ASCII armored GPG private key block (optional)
+* 'GPG_PUBLIC_KEY' : also optional
 If you want to use GCS as a storage, you need to link:https://cloud.google.com/docs/authentication/client-libraries[authenticate to Google Cloud services].
 
 === Database migration
