@@ -20,7 +20,7 @@ FROM debian:trixie-slim
 LABEL maintainer="outsideris@gmail.com"
 LABEL org.opencontainers.image.source = "https://github.com/outsideris/citizen"
 
-RUN apt update && apt install -y git jq vim curl
+RUN apt update && apt install -y git jq vim curl gpg
 
 COPY --from=build /citizen/dist/citizen-linux-x64 /usr/local/bin/citizen
 
