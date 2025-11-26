@@ -1,20 +1,63 @@
 const debug = require('debug')('citizen:server:store:sqlite');
+const path = require('path');
 
-const { PrismaClient } = require('./client');
+// -----------------------------------------------------------------------------
+// SAFE PRISMA CLIENT LOADING FOR PKG
+// -----------------------------------------------------------------------------
+
+// NOTE: pkg cannot handle Prisma's dynamic path resolution, so we directly
+// import the generated client from node_modules. Do NOT use relative dynamic
+// paths or adapter APIs.
+const { PrismaClient } = require("../../node_modules/@prisma/client");
+
+// Resolve SQLite database path *statically* so pkg can bundle the file safely.
+function resolveDatabasePath() {
+  return path.join(__dirname, "data.sqlite");
+}
+
+// Ensure DATABASE_URL is set before Prisma initializes.
+process.env.DATABASE_URL = `file:${resolveDatabasePath()}`;
+
+// pkg snapshots modules, so we keep a global singleton
+let prismaInstance = null;
+
+function getClient(config = {}) {
+  if (!prismaInstance) {
+    prismaInstance = new PrismaClient({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+      ...config,
+    });
+  }
+  return prismaInstance;
+}
+
+// -----------------------------------------------------------------------------
+
 const { normalizeSqlitePath } = require('../../lib/util');
-
 const storeType = 'sqlite';
 
+// Ensure directory and file exist
 normalizeSqlitePath();
 
-const config = {};
+// build config
+const prismaConfig = {};
 if (process.env.VERBOSE_DB_LOG) {
-  config.log = ['query', 'info', 'warn', 'error'];
+  prismaConfig.log = ['query', 'info', 'warn', 'error'];
 }
-const prisma = new PrismaClient(config);
 
-// modules
+// Actual working Prisma client:
+const prisma = getClient(prismaConfig);
+
+// -----------------------------------------------------------------------------
+// MODULE SERIALIZATION HELPERS
+// -----------------------------------------------------------------------------
+
 const delimiter = '#$$#';
+
 const serializeObjectArray = (arr) => {
   const temp = arr.map((a) => JSON.stringify(a));
   return temp.join(delimiter);
@@ -42,6 +85,10 @@ const deserializeModule = (m) => {
   module.submodules = module.submodules ? deserializeString(module.submodules) : [];
   return module;
 };
+
+// -----------------------------------------------------------------------------
+// MODULE STORE FUNCTIONS
+// -----------------------------------------------------------------------------
 
 const saveModule = async (data) => {
   const module = serializeModule(data);
@@ -103,7 +150,10 @@ const increaseModuleDownload = async (options) => {
   return null;
 };
 
-// providers
+// -----------------------------------------------------------------------------
+// PROVIDER SERIALIZATION HELPERS
+// -----------------------------------------------------------------------------
+
 const serializeProvider = (p) => {
   const provider = p;
   if (!provider.protocols) {
@@ -125,6 +175,10 @@ const deserializeProvider = (p) => {
   provider.gpgPublicKeys = provider.gpgPublicKeys ? deserializeString(provider.gpgPublicKeys) : [];
   return provider;
 };
+
+// -----------------------------------------------------------------------------
+// PROVIDER STORE FUNCTIONS
+// -----------------------------------------------------------------------------
 
 const saveProvider = async (data) => {
   const provider = serializeProvider(data);
@@ -182,6 +236,10 @@ const findProviderPackage = async (options) => {
   const packages = providers.filter((p) => p.platforms.some((i) => i.os === os && i.arch === arch));
   return packages.length > 0 ? packages[0] : null;
 };
+
+// -----------------------------------------------------------------------------
+// EXPORTS
+// -----------------------------------------------------------------------------
 
 module.exports = {
   storeType,
